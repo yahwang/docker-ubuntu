@@ -1,5 +1,7 @@
-# docker-ubuntu-pyenv
+# docker-ubuntu
 
-### tags
+## image 
 
-- 3.7.5
+### pyenv
+
+### linuxbrew

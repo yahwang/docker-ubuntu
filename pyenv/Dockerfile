@@ -1,4 +1,5 @@
 FROM ubuntu:18.04
+LABEL maintainer="yahwang"
 
 ARG PYTHON_VERSION=3.7.5
 ARG BUILD_PYTHON_DEPS=" \
@@ -17,30 +18,37 @@ ARG BUILD_PYTHON_DEPS=" \
         zlib1g-dev \
         "
 ARG BUILD_OPT_DEPS=" \
+        sudo \
         locales \
         git \
         ca-certificates \
         curl\
         "
 
-ENV LANG=en_US.UTF-8 \
-    PYENV_ROOT="/.pyenv" \
-    PATH="/.pyenv/bin:/.pyenv/shims:$PATH"
-
-# basic update &locale setting
+# basic update & locale setting
 RUN apt-get update \
  && apt-get upgrade -yqq \
  && apt-get install -y --no-install-recommends \
         ${BUILD_PYTHON_DEPS} \
         ${BUILD_OPT_DEPS} \
  && localedef -f UTF-8 -i en_US en_US.UTF-8 \
- && curl -L https://github.com/pyenv/pyenv-installer/raw/master/bin/pyenv-installer | bash \
+ && useradd -m -s /bin/bash ubuntu \
+ && echo 'ubuntu ALL=(ALL) NOPASSWD:ALL' >> /etc/sudoers \
  && apt-get autoremove -yqq --purge \
  && apt-get clean \
  && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
-# install python
-RUN pyenv install ${PYTHON_VERSION} \
+USER ubuntu
+
+WORKDIR /home/ubuntu
+
+ENV LANG=en_US.UTF-8 \
+    PYENV_ROOT="/home/ubuntu/.pyenv" \
+    PATH="/home/ubuntu/.pyenv/bin:/home/ubuntu/.pyenv/shims:$PATH"
+
+# install pyenv & python
+RUN curl -L https://github.com/pyenv/pyenv-installer/raw/master/bin/pyenv-installer | bash \
+ && pyenv install ${PYTHON_VERSION} \
  && pyenv global ${PYTHON_VERSION} \
  && pip install --upgrade pip
 
